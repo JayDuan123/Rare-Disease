@@ -48,5 +48,17 @@ from the page.
 
 | path | |
 |---|---|
-| `index.html` | the instrument |
+| `index.html` | the instrument raters use |
+| `preview.html` | reviewer preview — every question and every case at once |
 | `data/payload.json` | 21 trajectories, 52 contacts, blinded |
+
+## Reviewer preview
+
+`preview.html` exists so the study owner can read every question and every case without
+walking the locked-forward flow. It is deliberately **not linked from `index.html`** and
+sits behind a passphrase (`odyssey-review`).
+
+Be honest about what that gate is. The site is static, so the check runs in the browser
+and the phrase is in the page source: it stops a rater who stumbles onto the link, and it
+stops nobody who opens the source. **The URL is the real secret.** Anyone who reads
+`preview.html` has seen all 21 cases at once and can no longer serve as a rater.

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Reviewer preview — everything a rater will see</title>
+<style>
+:root{
+  --ground:#f6f7f6; --surface:#ffffff; --panel:#f1f3f2;
+  --ink:#15191b; --muted:#5a6461; --faint:#8a9491;
+  --rule:#dadedc; --rule-strong:#c2c8c5;
+  --accent:#2d6a66; --accent-ink:#ffffff; --accent-soft:#e4eeec;
+  --flag:#7a5a2e; --flag-soft:#f3ece0; --flag-rule:#d8c49a;
+  --shadow:0 1px 2px rgba(21,25,27,.06), 0 8px 24px -16px rgba(21,25,27,.28);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#131618; --surface:#1a1e20; --panel:#202527;
+    --ink:#e4e9e7; --muted:#a3adaa; --faint:#7c8785;
+    --rule:#2b3133; --rule-strong:#3b4245;
+    --accent:#74b6b0; --accent-ink:#10201f; --accent-soft:#1e2e2d;
+    --flag:#cba871; --flag-soft:#2a2418; --flag-rule:#5a4a28;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#131618; --surface:#1a1e20; --panel:#202527;
+  --ink:#e4e9e7; --muted:#a3adaa; --faint:#7c8785;
+  --rule:#2b3133; --rule-strong:#3b4245;
+  --accent:#74b6b0; --accent-ink:#10201f; --accent-soft:#1e2e2d;
+  --flag:#cba871; --flag-soft:#2a2418; --flag-rule:#5a4a28;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--ground); color:var(--ink); font-family:var(--sans);
+     font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.011em; text-wrap:balance}
+p{margin:0}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+.banner{
+  background:var(--flag-soft); border-bottom:1px solid var(--flag-rule); color:var(--flag);
+  padding:.7rem clamp(1rem,4vw,2.5rem); font-size:.85rem; line-height:1.5;
+}
+.banner strong{font-weight:700}
+.shell{display:grid; grid-template-columns:minmax(0,1fr); gap:0}
+@media (min-width:1080px){ .shell{grid-template-columns:15rem minmax(0,1fr)} }
+
+.side{
+  border-right:1px solid var(--rule); padding:1.4rem clamp(1rem,3vw,1.5rem);
+  background:var(--panel);
+}
+@media (min-width:1080px){ .side{position:sticky; top:0; height:100vh; overflow-y:auto} }
+.side h2{font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+         text-transform:uppercase; color:var(--faint); margin-bottom:.7rem}
+.idx{display:flex; flex-direction:column; gap:.15rem; margin-bottom:1.6rem}
+.idx a{
+  display:flex; justify-content:space-between; gap:.6rem; text-decoration:none;
+  color:var(--ink); font-family:var(--mono); font-size:.8rem;
+  padding:.3rem .5rem; border-radius:4px;
+}
+.idx a:hover{background:var(--accent-soft)}
+.idx a .c{color:var(--faint)}
+.stat{display:flex; justify-content:space-between; font-size:.8rem; padding:.25rem 0;
+      border-bottom:1px solid var(--rule)}
+.stat .v{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+.main{padding:clamp(1.4rem,3vw,2.4rem) clamp(1rem,4vw,2.5rem) 6rem; max-width:64rem}
+.sec{margin-bottom:3.2rem}
+.sec > h2{font-size:1.28rem; margin-bottom:.4rem}
+.sec > .sub{color:var(--muted); font-size:.92rem; margin-bottom:1.3rem; max-width:62ch}
+
+.spec{background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+      box-shadow:var(--shadow); padding:1.3rem; display:flex; flex-direction:column; gap:1.4rem}
+.qblock{display:flex; flex-direction:column; gap:.55rem}
+.qtag{font-family:var(--mono); font-size:.68rem; letter-spacing:.09em;
+      text-transform:uppercase; color:var(--accent)}
+.qtext{font-size:1rem; font-weight:600; line-height:1.4}
+.qhelp{font-size:.85rem; color:var(--muted); line-height:1.5; max-width:62ch}
+.enum{display:flex; flex-direction:column; gap:.3rem; margin-top:.2rem}
+.enum div{display:flex; gap:.7rem; align-items:baseline; font-size:.86rem;
+          border:1px solid var(--rule); border-radius:5px; padding:.4rem .6rem}
+.enum code{font-family:var(--mono); font-size:.82rem; color:var(--ink)}
+.enum span{color:var(--muted); font-size:.8rem}
+
+.case{background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+      box-shadow:var(--shadow); overflow:hidden; margin-bottom:1.4rem; scroll-margin-top:1rem}
+.case > header{
+  display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;
+  padding:.85rem 1.1rem; border-bottom:1px solid var(--rule); background:var(--panel);
+}
+.case > header .id{font-family:var(--mono); font-size:.9rem; font-weight:600}
+.case > header .meta{font-family:var(--mono); font-size:.75rem; color:var(--faint);
+                     margin-left:auto; font-variant-numeric:tabular-nums}
+.contact{padding:1.1rem 1.1rem 1.3rem; border-top:1px solid var(--rule)}
+.contact:first-of-type{border-top:none}
+.contact > .hd{
+  display:flex; gap:.8rem; align-items:baseline; margin-bottom:.7rem;
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--faint);
+}
+.contact > .hd .n{color:var(--accent); font-weight:600}
+.contact pre{font-family:var(--serif); font-size:1.01rem; line-height:1.6;
+             white-space:pre-wrap; word-wrap:break-word; margin:0; max-width:66ch}
+
+.gate{max-width:34rem; margin:14vh auto; padding:0 1.5rem;
+      display:flex; flex-direction:column; gap:1rem}
+.gate h1{font-size:1.35rem}
+.gate p{font-size:.92rem; color:var(--muted); line-height:1.55}
+.gate input{font:inherit; font-size:1rem; padding:.6rem .7rem; border-radius:6px;
+            border:1px solid var(--rule); background:var(--surface); color:var(--ink)}
+.gate button{background:var(--accent); color:var(--accent-ink); border:none;
+             border-radius:6px; padding:.6rem 1.1rem; font-weight:600; cursor:pointer}
+.gate .err{color:var(--flag); font-size:.85rem}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ---------------- gate ---------------- -->
+<section class="gate" id="gate">
+  <h1>Reviewer preview</h1>
+  <p>This page shows every question and every case at once — which is exactly what a rater
+  must never see. It is kept out of the instrument's navigation and behind this prompt.</p>
+  <p><strong>Be clear about what this is.</strong> The site is static, so the passphrase is
+  checked in your browser and sits in this page's source. It stops a rater who stumbles on
+  the link; it stops nobody who opens the source. Treat the URL as the real secret and do
+  not put it in anything a rater receives.</p>
+  <input type="password" id="pw" placeholder="Passphrase" autocomplete="off">
+  <div><button id="go" type="button">Open preview</button></div>
+  <p class="err hidden" id="err">Not that one.</p>
+</section>
+
+<!-- ---------------- content ---------------- -->
+<div id="content" class="hidden">
+  <div class="banner">
+    <strong>Reviewer preview — do not send this link to a rater.</strong>
+    Raters work through <code>index.html</code>, which shows one contact at a time and locks
+    each answer before the next appears. This page shows all 21 cases and all 52 contacts
+    together, so anyone who reads it can no longer serve as a rater.
+  </div>
+
+  <div class="shell">
+    <aside class="side">
+      <h2>Cases</h2>
+      <nav class="idx" id="idx"></nav>
+      <h2>Totals</h2>
+      <div id="stats"></div>
+    </aside>
+
+    <main class="main">
+
+      <section class="sec">
+        <h2>What the rater is asked</h2>
+        <p class="sub">Exactly the wording and options in the live instrument. Pass A is asked
+        once per contact with only that contact and its predecessors visible; Pass B is asked
+        once per case with the whole case visible.</p>
+
+        <div class="spec">
+          <div class="qblock">
+            <span class="qtag">Pass A · per contact · 52 times</span>
+            <span class="qtext">Given only what is recorded here, what would you do next for
+              this patient?</span>
+            <div class="enum">
+              <div><code>observe</code><span>watch, no new investigation now</span></div>
+              <div><code>routine_workup</code><span>standard next-line tests</span></div>
+              <div><code>escalate</code><span>urgent or expanded investigation</span></div>
+              <div><code>refer</code><span>hand to a specialist service</span></div>
+            </div>
+            <span class="qhelp">Wording and options are identical to what was put to the
+            systems being benchmarked, so the two are directly comparable.</span>
+          </div>
+
+          <div class="qblock">
+            <span class="qtag">Pass A · per contact</span>
+            <span class="qtext">How confident are you in that choice?</span>
+            <div class="enum">
+              <div><code>low</code></div><div><code>moderate</code></div><div><code>high</code></div>
+            </div>
+          </div>
+
+          <div class="qblock">
+            <span class="qtag">Pass A · per contact · multi-select</span>
+            <span class="qtext">Would any other option also be reasonable here?</span>
+            <span class="qhelp">Tick every option you would accept from a competent colleague.
+            Leave blank if only your choice is defensible. This is the check on whether
+            per-contact exact-match scoring is defensible at all: if raters routinely accept
+            two options, a system choosing either is not wrong.</span>
+            <div class="enum">
+              <div><code>observe</code></div><div><code>routine_workup</code></div>
+              <div><code>escalate</code></div><div><code>refer</code></div>
+            </div>
+          </div>
+
+          <div class="qblock">
+            <span class="qtag">Pass B · per case · 21 times</span>
+            <span class="qtext">Escalation — stepping beyond routine workup</span>
+            <span class="qhelp">Earliest contact at which stepping up would already be
+            <em>reasonable</em>. Options: Contact 1 … n, or <code>Never indicated here</code>.</span>
+            <span class="qhelp">Last contact at which stepping up is still <em>acceptable</em> —
+            after this, delay costs the patient. Options: Contact 1 … n, or
+            <code>Still acceptable to wait</code>. Disabled when the earliest answer is
+            <code>Never indicated</code>; the form rejects a latest earlier than the earliest.</span>
+          </div>
+
+          <div class="qblock">
+            <span class="qtag">Pass B · per case</span>
+            <span class="qtext">Referral to a specialist</span>
+            <span class="qhelp">The same pair of window questions, asked separately from
+            escalation because the two are different acts.</span>
+            <span class="qhelp">Plus, free text: <em>If referral is indicated, to which
+            specialty?</em> Disabled when referral is marked never indicated.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <h2>The 21 cases</h2>
+        <p class="sub">Case text is passed through byte for byte from the benchmark's rendered
+        contacts. Labels are opaque and ordered by digest, so <code>T01</code> is not the
+        alphabetically or chronologically first case. The de-blinding map is held in the
+        analysis repository and is not published with this site.</p>
+        <div id="cases"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+/* The gate is an accident guard, not access control — see the copy above. */
+const PHRASE = "odyssey-review";
+
+function el(t, c, x){ const n=document.createElement(t); if(c) n.className=c;
+  if(x!=null) n.textContent=x; return n; }
+
+function open_(){
+  document.getElementById("gate").classList.add("hidden");
+  document.getElementById("content").classList.remove("hidden");
+  render();
+}
+document.getElementById("go").addEventListener("click", () => {
+  if (document.getElementById("pw").value.trim() === PHRASE){
+    sessionStorage.setItem("cdt.preview","1"); open_();
+  } else document.getElementById("err").classList.remove("hidden");
+});
+document.getElementById("pw").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("go").click();
+});
+
+let DATA=null;
+function render(){
+  if(!DATA) return;
+  const idx=document.getElementById("idx"), host=document.getElementById("cases");
+  idx.replaceChildren(); host.replaceChildren();
+  let words=0;
+
+  DATA.trajectories.forEach(t => {
+    const a=el("a"); a.href="#"+t.trajectory_id;
+    a.append(el("span",null,t.trajectory_id));
+    a.append(el("span","c",`${t.n_stages} contacts`));
+    idx.append(a);
+
+    const w=t.stages.reduce((n,s)=>n+s.text.trim().split(/\s+/).length,0);
+    words+=w;
+
+    const card=el("section","case"); card.id=t.trajectory_id;
+    const hd=el("header");
+    hd.append(el("span","id",t.trajectory_id));
+    hd.append(el("span","meta",`${t.n_stages} contacts · ${w} words`));
+    card.append(hd);
+    t.stages.forEach((s,i)=>{
+      const c=el("div","contact");
+      const h=el("div","hd");
+      h.append(el("span","n",`Contact ${i+1} of ${t.n_stages}`));
+      h.append(el("span",null,s.stage_id));
+      c.append(h);
+      const pre=el("pre"); pre.textContent=s.text; c.append(pre);
+      card.append(c);
+    });
+    host.append(card);
+  });
+
+  const st=document.getElementById("stats");
+  st.replaceChildren();
+  [["Cases",DATA.n_trajectories],["Contacts",DATA.n_stages],
+   ["Words",words.toLocaleString()],
+   ["Pass A answers",DATA.n_stages],["Pass B answers",DATA.n_trajectories]
+  ].forEach(([k,v])=>{
+    const r=el("div","stat"); r.append(el("span",null,k)); r.append(el("span","v",String(v)));
+    st.append(r);
+  });
+}
+
+fetch("data/payload.json").then(r=>r.json()).then(d=>{ DATA=d; if(!document.getElementById("content").classList.contains("hidden")) render(); });
+if (sessionStorage.getItem("cdt.preview") === "1") open_();
+</script>
+</body>
+</html>
