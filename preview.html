@@ -77,19 +77,6 @@ button{font:inherit; color:inherit}
 .sec > h2{font-size:1.28rem; margin-bottom:.4rem}
 .sec > .sub{color:var(--muted); font-size:.92rem; margin-bottom:1.3rem; max-width:62ch}
 
-.spec{background:var(--surface); border:1px solid var(--rule); border-radius:8px;
-      box-shadow:var(--shadow); padding:1.3rem; display:flex; flex-direction:column; gap:1.4rem}
-.qblock{display:flex; flex-direction:column; gap:.55rem}
-.qtag{font-family:var(--mono); font-size:.68rem; letter-spacing:.09em;
-      text-transform:uppercase; color:var(--accent)}
-.qtext{font-size:1rem; font-weight:600; line-height:1.4}
-.qhelp{font-size:.85rem; color:var(--muted); line-height:1.5; max-width:62ch}
-.enum{display:flex; flex-direction:column; gap:.3rem; margin-top:.2rem}
-.enum div{display:flex; gap:.7rem; align-items:baseline; font-size:.86rem;
-          border:1px solid var(--rule); border-radius:5px; padding:.4rem .6rem}
-.enum code{font-family:var(--mono); font-size:.82rem; color:var(--ink)}
-.enum span{color:var(--muted); font-size:.8rem}
-
 .case{background:var(--surface); border:1px solid var(--rule); border-radius:8px;
       box-shadow:var(--shadow); overflow:hidden; margin-bottom:1.4rem; scroll-margin-top:1rem}
 .case > header{
@@ -99,14 +86,37 @@ button{font:inherit; color:inherit}
 .case > header .id{font-family:var(--mono); font-size:.9rem; font-weight:600}
 .case > header .meta{font-family:var(--mono); font-size:.75rem; color:var(--faint);
                      margin-left:auto; font-variant-numeric:tabular-nums}
-.contact{padding:1.1rem 1.1rem 1.3rem; border-top:1px solid var(--rule)}
+.contact{padding:1.1rem; border-top:1px solid var(--rule);
+          display:grid; grid-template-columns:minmax(0,1fr); gap:1.1rem}
+@media (min-width:900px){ .contact{grid-template-columns:minmax(0,1fr) 19rem; gap:1.6rem} }
+.ask{background:var(--panel); border:1px solid var(--rule); border-radius:7px;
+     padding:.9rem; display:flex; flex-direction:column; gap:1rem; align-self:start}
+.ask .qt{font-size:.87rem; font-weight:600; line-height:1.4}
+.ask .qh{font-size:.78rem; color:var(--muted); line-height:1.45}
+.ask .tag{font-family:var(--mono); font-size:.63rem; letter-spacing:.09em;
+          text-transform:uppercase; color:var(--accent)}
+.opts{display:flex; flex-direction:column; gap:.3rem}
+.opt{display:flex; align-items:center; gap:.55rem; padding:.42rem .55rem;
+     border:1px solid var(--rule); border-radius:5px; background:var(--surface); cursor:pointer}
+.opt input{accent-color:var(--accent); margin:0; flex:none}
+.opt .name{font-family:var(--mono); font-size:.79rem}
+.opt .gloss{font-size:.71rem; color:var(--muted); margin-left:auto; text-align:right}
+.opt:has(input:checked){border-color:var(--accent); background:var(--accent-soft)}
+.inline{display:flex; gap:.3rem; flex-wrap:wrap}
+.inline .opt{flex:1 1 4.5rem; justify-content:center; padding:.35rem .4rem}
+.ask select,.ask input[type=text]{width:100%; font:inherit; font-size:.83rem; color:var(--ink);
+     background:var(--surface); border:1px solid var(--rule); border-radius:5px; padding:.4rem .5rem}
+.passb{border-top:1px solid var(--rule); background:var(--panel); padding:1.1rem;
+       display:grid; grid-template-columns:minmax(0,1fr); gap:1rem}
+@media (min-width:900px){ .passb{grid-template-columns:minmax(0,1fr) 19rem; gap:1.6rem} }
+.passb .lead{font-size:.86rem; color:var(--muted); line-height:1.5; align-self:center}
 .contact:first-of-type{border-top:none}
-.contact > .hd{
+.contact .hd{
   display:flex; gap:.8rem; align-items:baseline; margin-bottom:.7rem;
   font-family:var(--mono); font-size:.72rem; letter-spacing:.08em;
   text-transform:uppercase; color:var(--faint);
 }
-.contact > .hd .n{color:var(--accent); font-weight:600}
+.contact .hd .n{color:var(--accent); font-weight:600}
 .contact pre{font-family:var(--serif); font-size:1.01rem; line-height:1.6;
              white-space:pre-wrap; word-wrap:break-word; margin:0; max-width:66ch}
 
@@ -159,66 +169,11 @@ button{font:inherit; color:inherit}
 
       <section class="sec">
         <h2>What the rater is asked</h2>
-        <p class="sub">Exactly the wording and options in the live instrument. Pass A is asked
-        once per contact with only that contact and its predecessors visible; Pass B is asked
-        once per case with the whole case visible.</p>
-
-        <div class="spec">
-          <div class="qblock">
-            <span class="qtag">Pass A · per contact · 52 times</span>
-            <span class="qtext">Given only what is recorded here, what would you do next for
-              this patient?</span>
-            <div class="enum">
-              <div><code>observe</code><span>watch, no new investigation now</span></div>
-              <div><code>routine_workup</code><span>standard next-line tests</span></div>
-              <div><code>escalate</code><span>urgent or expanded investigation</span></div>
-              <div><code>refer</code><span>hand to a specialist service</span></div>
-            </div>
-            <span class="qhelp">Wording and options are identical to what was put to the
-            systems being benchmarked, so the two are directly comparable.</span>
-          </div>
-
-          <div class="qblock">
-            <span class="qtag">Pass A · per contact</span>
-            <span class="qtext">How confident are you in that choice?</span>
-            <div class="enum">
-              <div><code>low</code></div><div><code>moderate</code></div><div><code>high</code></div>
-            </div>
-          </div>
-
-          <div class="qblock">
-            <span class="qtag">Pass A · per contact · multi-select</span>
-            <span class="qtext">Would any other option also be reasonable here?</span>
-            <span class="qhelp">Tick every option you would accept from a competent colleague.
-            Leave blank if only your choice is defensible. This is the check on whether
-            per-contact exact-match scoring is defensible at all: if raters routinely accept
-            two options, a system choosing either is not wrong.</span>
-            <div class="enum">
-              <div><code>observe</code></div><div><code>routine_workup</code></div>
-              <div><code>escalate</code></div><div><code>refer</code></div>
-            </div>
-          </div>
-
-          <div class="qblock">
-            <span class="qtag">Pass B · per case · 21 times</span>
-            <span class="qtext">Escalation — stepping beyond routine workup</span>
-            <span class="qhelp">Earliest contact at which stepping up would already be
-            <em>reasonable</em>. Options: Contact 1 … n, or <code>Never indicated here</code>.</span>
-            <span class="qhelp">Last contact at which stepping up is still <em>acceptable</em> —
-            after this, delay costs the patient. Options: Contact 1 … n, or
-            <code>Still acceptable to wait</code>. Disabled when the earliest answer is
-            <code>Never indicated</code>; the form rejects a latest earlier than the earliest.</span>
-          </div>
-
-          <div class="qblock">
-            <span class="qtag">Pass B · per case</span>
-            <span class="qtext">Referral to a specialist</span>
-            <span class="qhelp">The same pair of window questions, asked separately from
-            escalation because the two are different acts.</span>
-            <span class="qhelp">Plus, free text: <em>If referral is indicated, to which
-            specialty?</em> Disabled when referral is marked never indicated.</span>
-          </div>
-        </div>
+        <p class="sub">The questions appear beside each contact below, rendered exactly as a
+        rater sees them — including the Pass&nbsp;B contact options, which depend on how many
+        contacts that case has. Pass&nbsp;A is asked once per contact, with only that contact
+        and its predecessors visible. Pass&nbsp;B is asked once per case, with the whole case
+        visible. <strong>Nothing you click on this page is recorded.</strong></p>
       </section>
 
       <section class="sec">
@@ -255,6 +210,85 @@ document.getElementById("pw").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("go").click();
 });
 
+const ACTIONS=[["observe","watch, no new investigation now"],
+  ["routine_workup","standard next-line tests"],
+  ["escalate","urgent or expanded investigation"],
+  ["refer","hand to a specialist service"]];
+const CONF=["low","moderate","high"];
+
+function opt(kind,name,val,gloss){
+  const l=el("label","opt");
+  const i=document.createElement("input"); i.type=kind; i.name=name; i.value=val;
+  l.append(i, el("span","name",val));
+  if(gloss) l.append(el("span","gloss",gloss));
+  return l;
+}
+function block(tag,question,help){
+  const b=el("div");
+  b.style.cssText="display:flex;flex-direction:column;gap:.45rem";
+  b.append(el("span","tag",tag), el("span","qt",question));
+  if(help) b.append(el("span","qh",help));
+  return b;
+}
+
+/* Pass A, exactly as the live instrument renders it. */
+function askA(sid){
+  const a=el("div","ask");
+  let b=block("Pass A","Given only what is recorded here, what would you do next for this patient?");
+  const o1=el("div","opts");
+  ACTIONS.forEach(([v,g])=>o1.append(opt("radio",sid+"-act",v,g)));
+  b.append(o1); a.append(b);
+
+  b=block("Pass A","How confident are you in that choice?");
+  const o2=el("div","inline");
+  CONF.forEach(v=>o2.append(opt("radio",sid+"-conf",v,null)));
+  b.append(o2); a.append(b);
+
+  b=block("Pass A · multi-select","Would any other option also be reasonable here?",
+          "Tick every option you would accept from a competent colleague. Leave blank if only your choice is defensible.");
+  const o3=el("div","opts");
+  ACTIONS.forEach(([v])=>o3.append(opt("checkbox",sid+"-alt",v,null)));
+  b.append(o3); a.append(b);
+  return a;
+}
+
+/* Pass B, with this case's real contact options rather than an abstract "1 ... n". */
+function sel(n,endVal,endText){
+  const s=document.createElement("select");
+  const z=document.createElement("option"); z.textContent="— choose —"; s.append(z);
+  for(let i=1;i<=n;i++){ const o=document.createElement("option");
+    o.textContent=`Contact ${i}`; s.append(o); }
+  const e=document.createElement("option"); e.textContent=endText; s.append(e);
+  return s;
+}
+function askB(t){
+  const wrap=el("div","passb");
+  const lead=el("div","lead");
+  lead.append(el("p",null,
+    `After all ${t.n_stages} contacts of ${t.trajectory_id} are locked, the whole case is shown together and these two windows are asked. The contact options below are this case's real ones.`));
+  wrap.append(lead);
+
+  const a=el("div","ask");
+  let b=block("Pass B · escalation","Escalation — stepping beyond routine workup",
+    "Earliest contact at which stepping up would already be reasonable:");
+  b.append(sel(t.n_stages,"never","Never indicated here"));
+  b.append(el("span","qh","Last contact at which stepping up is still acceptable — after this, delay costs the patient:"));
+  b.append(sel(t.n_stages,"beyond","Still acceptable to wait"));
+  a.append(b);
+
+  b=block("Pass B · referral","Referral to a specialist",
+    "Earliest contact at which referral would already be reasonable:");
+  b.append(sel(t.n_stages,"never","Never indicated here"));
+  b.append(el("span","qh","Last contact at which referral is still acceptable:"));
+  b.append(sel(t.n_stages,"beyond","Still acceptable to wait"));
+  b.append(el("span","qh","If referral is indicated, to which specialty?"));
+  const inp=document.createElement("input"); inp.type="text";
+  inp.placeholder="e.g. rheumatology, neurology"; b.append(inp);
+  a.append(b);
+  wrap.append(a);
+  return wrap;
+}
+
 let DATA=null;
 function render(){
   if(!DATA) return;
@@ -278,13 +312,17 @@ function render(){
     card.append(hd);
     t.stages.forEach((s,i)=>{
       const c=el("div","contact");
+      const left=el("div");
       const h=el("div","hd");
       h.append(el("span","n",`Contact ${i+1} of ${t.n_stages}`));
       h.append(el("span",null,s.stage_id));
-      c.append(h);
-      const pre=el("pre"); pre.textContent=s.text; c.append(pre);
+      left.append(h);
+      const pre=el("pre"); pre.textContent=s.text; left.append(pre);
+      c.append(left);
+      c.append(askA(s.stage_id));
       card.append(c);
     });
+    card.append(askB(t));
     host.append(card);
   });
 
