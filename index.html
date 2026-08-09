@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Clinical decision timing — reference standard</title>
+<style>
+/* ---------------------------------------------------------------------------
+   Palette. Deliberately free of urgency colour anywhere near the record: a red
+   or amber cue beside a case would nudge the very escalation judgement this
+   instrument exists to measure. Semantic colour appears only on form
+   validation, and even there it is desaturated.
+   --------------------------------------------------------------------------- */
+:root{
+  --ground:#f6f7f6; --surface:#ffffff; --panel:#f1f3f2;
+  --ink:#15191b; --muted:#5a6461; --faint:#8a9491;
+  --rule:#dadedc; --rule-strong:#c2c8c5;
+  --accent:#2d6a66; --accent-ink:#ffffff; --accent-soft:#e4eeec;
+  --flag:#7a5a2e; --flag-soft:#f3ece0;
+  --shadow:0 1px 2px rgba(21,25,27,.06), 0 8px 24px -16px rgba(21,25,27,.28);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#131618; --surface:#1a1e20; --panel:#202527;
+    --ink:#e4e9e7; --muted:#a3adaa; --faint:#7c8785;
+    --rule:#2b3133; --rule-strong:#3b4245;
+    --accent:#74b6b0; --accent-ink:#10201f; --accent-soft:#1e2e2d;
+    --flag:#cba871; --flag-soft:#2a2418;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#131618; --surface:#1a1e20; --panel:#202527;
+  --ink:#e4e9e7; --muted:#a3adaa; --faint:#7c8785;
+  --rule:#2b3133; --rule-strong:#3b4245;
+  --accent:#74b6b0; --accent-ink:#10201f; --accent-soft:#1e2e2d;
+  --flag:#cba871; --flag-soft:#2a2418;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{text-wrap:balance; margin:0; font-weight:600; letter-spacing:-.011em}
+p{margin:0}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ---- shell ---------------------------------------------------------------- */
+.masthead{
+  position:sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+  padding:.7rem clamp(1rem,4vw,2.5rem);
+  background:color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+}
+.masthead .title{font-size:.83rem; font-weight:600; letter-spacing:.055em; text-transform:uppercase}
+.masthead .who{
+  margin-left:auto; font-family:var(--mono); font-size:.75rem; color:var(--muted);
+  display:flex; align-items:center; gap:.9rem;
+}
+.wrap{max-width:1220px; margin:0 auto; padding:clamp(1.2rem,3vw,2.2rem) clamp(1rem,4vw,2.5rem) 5rem}
+
+/* ---- progress rail: encodes real position in a real sequence --------------- */
+.rail{display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; margin-bottom:1.6rem}
+.rail .lab{font-family:var(--mono); font-size:.72rem; color:var(--faint); letter-spacing:.06em}
+.pip{
+  width:1.9rem; height:.3rem; border-radius:2px; background:var(--rule-strong);
+}
+.pip.done{background:var(--accent)}
+.pip.now{background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.railgap{width:.6rem}
+
+/* ---- two-column reading + decision ---------------------------------------- */
+.split{display:grid; grid-template-columns:minmax(0,1fr); gap:1.6rem}
+@media (min-width:1000px){ .split{grid-template-columns:minmax(0,1fr) 23rem; gap:2.2rem; align-items:start} }
+
+.record{
+  background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+  box-shadow:var(--shadow); padding:clamp(1.2rem,3vw,2rem);
+}
+.record h2{
+  font-family:var(--mono); font-size:.72rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--faint);
+  padding-bottom:.7rem; margin-bottom:1.1rem; border-bottom:1px solid var(--rule);
+  display:flex; justify-content:space-between; gap:1rem;
+}
+/* The record is set in the serif so it never reads as part of the questionnaire. */
+.record pre{
+  font-family:var(--serif); font-size:1.03rem; line-height:1.62;
+  white-space:pre-wrap; word-wrap:break-word; margin:0; max-width:66ch; color:var(--ink);
+}
+.stack{display:flex; flex-direction:column; gap:1.4rem}
+.prior{opacity:.72}
+.prior .record{background:var(--panel); box-shadow:none}
+
+.panel{
+  background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+  box-shadow:var(--shadow); padding:1.3rem;
+  display:flex; flex-direction:column; gap:1.35rem;
+}
+@media (min-width:1000px){ .panel{position:sticky; top:5rem} }
+.q{display:flex; flex-direction:column; gap:.6rem}
+.q > .qt{font-size:.95rem; font-weight:600; line-height:1.4}
+.q > .qh{font-size:.82rem; color:var(--muted); line-height:1.45}
+
+.opts{display:flex; flex-direction:column; gap:.4rem}
+.opt{
+  display:flex; align-items:center; gap:.6rem; cursor:pointer;
+  padding:.55rem .7rem; border:1px solid var(--rule); border-radius:6px;
+  background:var(--surface); transition:border-color .12s, background .12s;
+}
+.opt:hover{border-color:var(--rule-strong)}
+.opt input{accent-color:var(--accent); margin:0; width:1rem; height:1rem; flex:none}
+.opt .name{font-family:var(--mono); font-size:.85rem}
+.opt .gloss{font-size:.78rem; color:var(--muted); margin-left:auto; text-align:right}
+.opt:has(input:checked){border-color:var(--accent); background:var(--accent-soft)}
+
+.row{display:flex; gap:.4rem; flex-wrap:wrap}
+.row .opt{flex:1 1 5.5rem; justify-content:center; padding:.45rem .5rem}
+.row .opt .name{font-size:.8rem}
+
+select,input[type=text]{
+  width:100%; font:inherit; font-size:.9rem; color:var(--ink);
+  background:var(--surface); border:1px solid var(--rule); border-radius:6px;
+  padding:.5rem .6rem;
+}
+select:disabled{opacity:.45; cursor:not-allowed}
+
+.btn{
+  border:1px solid transparent; border-radius:6px; padding:.62rem 1rem;
+  background:var(--accent); color:var(--accent-ink); font-weight:600; font-size:.9rem;
+  cursor:pointer; transition:opacity .12s;
+}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--rule-strong); font-weight:500}
+.btn.small{padding:.4rem .7rem; font-size:.8rem}
+
+.note{
+  font-size:.8rem; color:var(--muted); line-height:1.5;
+  border-left:2px solid var(--rule-strong); padding-left:.75rem;
+}
+.warn{
+  font-size:.82rem; color:var(--flag); background:var(--flag-soft);
+  border-radius:6px; padding:.55rem .7rem; line-height:1.45;
+}
+.hidden{display:none!important}
+
+/* ---- intro & finish ------------------------------------------------------- */
+.card{
+  background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+  box-shadow:var(--shadow); padding:clamp(1.4rem,4vw,2.4rem);
+  max-width:44rem; margin:0 auto; display:flex; flex-direction:column; gap:1.2rem;
+}
+.card h1{font-size:1.5rem; line-height:1.25}
+.card p{font-size:.95rem; color:var(--ink); max-width:62ch}
+.card .lede{font-size:1.02rem; color:var(--muted)}
+.steps{display:flex; flex-direction:column; gap:.85rem; margin:0; padding:0; list-style:none}
+.steps li{display:flex; gap:.8rem; font-size:.92rem; line-height:1.5}
+.steps .n{
+  font-family:var(--mono); font-size:.72rem; color:var(--accent);
+  border:1px solid var(--accent); border-radius:50%; width:1.5rem; height:1.5rem;
+  display:grid; place-items:center; flex:none; margin-top:.1rem;
+}
+.field{display:flex; flex-direction:column; gap:.4rem}
+.field label{font-size:.85rem; font-weight:600}
+.tbl{width:100%; border-collapse:collapse; font-size:.85rem}
+.tbl th,.tbl td{text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--rule)}
+.tbl th{font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); font-weight:600}
+.tbl td.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <span class="title">Clinical decision timing</span>
+  <span class="who">
+    <span id="whoami"></span>
+    <button class="btn ghost small" id="saveBtn" type="button">Save my answers</button>
+  </span>
+</header>
+
+<main class="wrap">
+
+  <!-- ============================ INTRO ============================ -->
+  <section id="intro" class="card">
+    <h1>How clinicians time escalation and referral</h1>
+    <p class="lede">You will read 21 anonymised patient records, each unfolding across
+    several contacts, and say what you would do at each point. There are no right answers
+    supplied and nothing is being tested — your judgement is the reference.</p>
+
+    <ul class="steps">
+      <li><span class="n">1</span><span><strong>One contact at a time.</strong> You see the
+        record exactly as it stood at that moment. Decide what you would do next, then lock
+        it in. <strong>You cannot revise a locked answer</strong> — later contacts reveal
+        information you did not have, and an answer changed in hindsight is no longer the
+        judgement we need.</span></li>
+      <li><span class="n">2</span><span><strong>Then the whole story.</strong> Once you have
+        answered every contact in a case, all of it is shown together and you are asked when
+        escalation and referral should have happened — as a window, not a single point:
+        the earliest reasonable moment and the last acceptable one.</span></li>
+      <li><span class="n">3</span><span><strong>Work in sittings.</strong> Progress is kept
+        in this browser. Close the tab and return to the same link on the same machine to
+        carry on. Use <em>Save my answers</em> at any time to download what you have so far.</span></li>
+    </ul>
+
+    <p class="note">Records are drawn from published, de-identified case reports. Identifiers,
+    diagnoses and outcomes have been removed, and cases are labelled T01–T21 in an order that
+    carries no meaning. Please do not search for the source — a record whose ending you know
+    can no longer be judged as it stood.</p>
+
+    <div class="field">
+      <label for="rater">Your initials or a short identifier</label>
+      <input type="text" id="rater" placeholder="e.g. AB" autocomplete="off" maxlength="24">
+    </div>
+    <div class="field">
+      <label for="spec">Your specialty</label>
+      <input type="text" id="spec" placeholder="e.g. general internal medicine" autocomplete="off" maxlength="60">
+    </div>
+    <div>
+      <button class="btn" id="startBtn" type="button" disabled>Begin</button>
+    </div>
+  </section>
+
+  <!-- ============================ PASS A ============================ -->
+  <section id="passA" class="hidden">
+    <div class="rail" id="railA"></div>
+    <div class="split">
+      <div class="stack" id="recordA"></div>
+
+      <form class="panel" id="formA" autocomplete="off">
+        <div class="q">
+          <span class="qt">Given only what is recorded here, what would you do next for this patient?</span>
+          <div class="opts" id="actA"></div>
+        </div>
+        <div class="q">
+          <span class="qt">How confident are you in that choice?</span>
+          <div class="row" id="confA"></div>
+        </div>
+        <div class="q">
+          <span class="qt">Would any other option also be reasonable here?</span>
+          <span class="qh">Tick every option you would accept from a competent colleague.
+            Leave blank if only your choice is defensible.</span>
+          <div class="opts" id="altA"></div>
+        </div>
+        <button class="btn" id="lockBtn" type="submit" disabled>Lock and continue</button>
+        <p class="note" id="lockNote">Locking is final for this contact.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============================ PASS B ============================ -->
+  <section id="passB" class="hidden">
+    <div class="rail" id="railB"></div>
+    <div class="split">
+      <div class="stack" id="recordB"></div>
+
+      <form class="panel" id="formB" autocomplete="off">
+        <p class="note">The whole case is now shown on the left. These questions are asked
+          with hindsight, which is exactly what they need.</p>
+
+        <div class="q">
+          <span class="qt">Escalation — stepping beyond routine workup</span>
+          <span class="qh">Earliest contact at which stepping up would already be
+            <em>reasonable</em>:</span>
+          <select id="escEarly"></select>
+          <span class="qh">Last contact at which stepping up is still <em>acceptable</em> —
+            after this, delay costs the patient:</span>
+          <select id="escLate"></select>
+        </div>
+
+        <div class="q">
+          <span class="qt">Referral to a specialist</span>
+          <span class="qh">Earliest contact at which referral would already be
+            <em>reasonable</em>:</span>
+          <select id="refEarly"></select>
+          <span class="qh">Last contact at which referral is still <em>acceptable</em>:</span>
+          <select id="refLate"></select>
+          <span class="qh">If referral is indicated, to which specialty? Separate several with
+            commas.</span>
+          <input type="text" id="refDest" placeholder="e.g. rheumatology, neurology" maxlength="120">
+        </div>
+
+        <div class="warn hidden" id="warnB"></div>
+        <button class="btn" id="nextCaseBtn" type="submit">Save case and continue</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============================ DONE ============================ -->
+  <section id="done" class="card hidden">
+    <h1>All 21 cases complete</h1>
+    <p class="lede">Thank you. Download your answers and send the file back — nothing is
+      transmitted from this page.</p>
+    <table class="tbl" id="summary"></table>
+    <div class="row">
+      <button class="btn" id="dlBtn" type="button">Download my answers</button>
+      <button class="btn ghost" id="resetBtn" type="button">Clear this browser</button>
+    </div>
+    <p class="note">Keep the file safe until you have confirmation it arrived. Clearing the
+      browser erases your answers here permanently.</p>
+  </section>
+
+</main>
+
+<script>
+/* ===========================================================================
+   Instrument for notes/CLINICIAN_GOLD.md (frozen 2026-08-08).
+
+   The two rules that the tool, not an instruction sheet, has to enforce:
+     - Pass A is prospective. A locked stage cannot be revisited, and later
+       stages are not rendered until the current one is locked.
+     - Pass B opens only when every stage of the trajectory is locked.
+   Everything else is bookkeeping.
+   =========================================================================== */
+
+const ACTIONS = [
+  ["observe",        "watch, no new investigation now"],
+  ["routine_workup", "standard next-line tests"],
+  ["escalate",       "urgent or expanded investigation"],
+  ["refer",          "hand to a specialist service"]
+];
+const CONF = ["low", "moderate", "high"];
+const KEY = "cdt.pilot.v1";
+
+let DATA = null;
+let S = null;   // session state
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const n = document.createElement(tag);
+  if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+
+/* ---- persistence -------------------------------------------------------- */
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; }
+}
+function save() {
+  S.updated = new Date().toISOString();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+}
+
+/* ---- rendering ---------------------------------------------------------- */
+function rail(node, tIdx, sIdx, phase) {
+  node.replaceChildren();
+  node.append(el("span", "lab", `CASE ${tIdx + 1} OF ${DATA.trajectories.length}`));
+  const t = DATA.trajectories[tIdx];
+  node.append(el("span", "railgap"));
+  node.append(el("span", "lab", "CONTACT"));
+  t.stages.forEach((_, i) => {
+    const p = el("span", "pip");
+    if (phase === "B" || i < sIdx) p.classList.add("done");
+    else if (i === sIdx) p.classList.add("now");
+    node.append(p);
+  });
+  if (phase === "B") {
+    node.append(el("span", "railgap"));
+    node.append(el("span", "lab", "· LOOKING BACK"));
+  }
+}
+
+function recordCard(stage, n, total, dim) {
+  const wrap = el("div", dim ? "prior" : null);
+  const card = el("div", "record");
+  const h = el("h2");
+  h.append(el("span", null, `Contact ${n} of ${total}`));
+  h.append(el("span", null, stage.stage_id));
+  card.append(h);
+  const pre = el("pre"); pre.textContent = stage.text;
+  card.append(pre);
+  wrap.append(card);
+  return wrap;
+}
+
+function radios(host, name, items, onchange, checked) {
+  host.replaceChildren();
+  items.forEach(([val, gloss]) => {
+    const lab = el("label", "opt");
+    const inp = document.createElement("input");
+    inp.type = "radio"; inp.name = name; inp.value = val;
+    if (checked === val) inp.checked = true;
+    inp.addEventListener("change", onchange);
+    lab.append(inp, el("span", "name", val));
+    if (gloss) lab.append(el("span", "gloss", gloss));
+    host.append(lab);
+  });
+}
+
+function checks(host, name, items) {
+  host.replaceChildren();
+  items.forEach(([val, gloss]) => {
+    const lab = el("label", "opt");
+    const inp = document.createElement("input");
+    inp.type = "checkbox"; inp.name = name; inp.value = val;
+    lab.append(inp, el("span", "name", val));
+    if (gloss) lab.append(el("span", "gloss", gloss));
+    host.append(lab);
+  });
+}
+
+/* ---- Pass A ------------------------------------------------------------- */
+function showA() {
+  const t = DATA.trajectories[S.t];
+  $("intro").classList.add("hidden");
+  $("passB").classList.add("hidden");
+  $("done").classList.add("hidden");
+  $("passA").classList.remove("hidden");
+
+  rail($("railA"), S.t, S.s, "A");
+
+  // Only stages up to and including the current one exist for the rater.
+  const host = $("recordA");
+  host.replaceChildren();
+  for (let i = 0; i <= S.s; i++) {
+    host.append(recordCard(t.stages[i], i + 1, t.n_stages, i < S.s));
+  }
+
+  radios($("actA"), "act", ACTIONS, onFormA, null);
+  radios($("confA"), "conf", CONF.map(c => [c, null]), onFormA, null);
+  checks($("altA"), "alt", ACTIONS);
+  $("lockBtn").disabled = true;
+  $("lockNote").textContent = S.s + 1 < t.n_stages
+    ? "Locking is final for this contact. The next contact opens after you lock."
+    : "Locking is final. The whole case opens next for the timing questions.";
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function onFormA() {
+  const a = document.querySelector('input[name="act"]:checked');
+  const c = document.querySelector('input[name="conf"]:checked');
+  $("lockBtn").disabled = !(a && c);
+}
+
+$("formA").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const t = DATA.trajectories[S.t];
+  const stage = t.stages[S.s];
+  const alt = [...document.querySelectorAll('input[name="alt"]:checked')].map(x => x.value);
+  S.answers.stages.push({
+    stage_id: stage.stage_id,
+    trajectory_id: t.trajectory_id,
+    contact: S.s + 1,
+    action: document.querySelector('input[name="act"]:checked').value,
+    confidence: document.querySelector('input[name="conf"]:checked').value,
+    also_reasonable: alt,
+    locked_at: new Date().toISOString()
+  });
+  S.s += 1;
+  save();
+  if (S.s < t.n_stages) showA(); else showB();
+});
+
+/* ---- Pass B ------------------------------------------------------------- */
+function stageOptions(sel, n, endLabel) {
+  sel.replaceChildren();
+  const none = document.createElement("option");
+  none.value = ""; none.textContent = "— choose —"; sel.append(none);
+  for (let i = 1; i <= n; i++) {
+    const o = document.createElement("option");
+    o.value = String(i); o.textContent = `Contact ${i}`; sel.append(o);
+  }
+  const o = document.createElement("option");
+  o.value = endLabel.value; o.textContent = endLabel.text; sel.append(o);
+}
+
+function showB() {
+  const t = DATA.trajectories[S.t];
+  $("passA").classList.add("hidden");
+  $("passB").classList.remove("hidden");
+  rail($("railB"), S.t, t.n_stages, "B");
+
+  const host = $("recordB");
+  host.replaceChildren();
+  t.stages.forEach((s, i) => host.append(recordCard(s, i + 1, t.n_stages, false)));
+
+  stageOptions($("escEarly"), t.n_stages, { value: "never", text: "Never indicated here" });
+  stageOptions($("escLate"),  t.n_stages, { value: "beyond", text: "Still acceptable to wait" });
+  stageOptions($("refEarly"), t.n_stages, { value: "never", text: "Never indicated here" });
+  stageOptions($("refLate"),  t.n_stages, { value: "beyond", text: "Still acceptable to wait" });
+  $("refDest").value = "";
+  $("warnB").classList.add("hidden");
+  syncB();
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+/* "Never indicated" closes the window rather than leaving the late end dangling. */
+function syncB() {
+  [["escEarly", "escLate"], ["refEarly", "refLate"]].forEach(([e, l]) => {
+    const never = $(e).value === "never";
+    $(l).disabled = never;
+    if (never) $(l).value = "";
+  });
+  const refNever = $("refEarly").value === "never";
+  $("refDest").disabled = refNever;
+  if (refNever) $("refDest").value = "";
+}
+["escEarly", "refEarly"].forEach(id => $(id).addEventListener("change", syncB));
+
+function windowOf(e, l) {
+  const a = $(e).value, b = $(l).value;
+  if (!a) return { error: "choose an earliest contact" };
+  if (a === "never") return { earliest: "never", latest: "never" };
+  if (!b) return { error: "choose a latest contact" };
+  if (b !== "beyond" && Number(b) < Number(a))
+    return { error: "the latest contact cannot come before the earliest" };
+  return { earliest: Number(a), latest: b === "beyond" ? "beyond" : Number(b) };
+}
+
+$("formB").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const t = DATA.trajectories[S.t];
+  const esc = windowOf("escEarly", "escLate");
+  const ref = windowOf("refEarly", "refLate");
+  const bad = esc.error ? "Escalation: " + esc.error : ref.error ? "Referral: " + ref.error : null;
+  if (bad) { $("warnB").textContent = bad; $("warnB").classList.remove("hidden"); return; }
+  $("warnB").classList.add("hidden");
+
+  S.answers.windows.push({
+    trajectory_id: t.trajectory_id,
+    n_contacts: t.n_stages,
+    escalation: esc,
+    referral: ref,
+    referral_destination: $("refDest").value.trim(),
+    answered_at: new Date().toISOString()
+  });
+  S.t += 1; S.s = 0;
+  save();
+  if (S.t < DATA.trajectories.length) showA(); else showDone();
+});
+
+/* ---- done --------------------------------------------------------------- */
+function showDone() {
+  $("passA").classList.add("hidden");
+  $("passB").classList.add("hidden");
+  $("done").classList.remove("hidden");
+  const tb = $("summary");
+  tb.replaceChildren();
+  const head = el("tr");
+  ["", "count"].forEach(h => head.append(el("th", null, h)));
+  tb.append(head);
+  [["contacts judged", S.answers.stages.length],
+   ["cases with a timing window", S.answers.windows.length]].forEach(([k, v]) => {
+    const tr = el("tr"); tr.append(el("td", null, k)); tr.append(el("td", "num", String(v)));
+    tb.append(tr);
+  });
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function download() {
+  const out = {
+    instrument: "clinician_gold_pilot_v1",
+    spec: "notes/CLINICIAN_GOLD.md",
+    rater: S.rater, specialty: S.specialty,
+    started: S.started, exported: new Date().toISOString(),
+    progress: { case_index: S.t, contact_index: S.s,
+                total_cases: DATA.trajectories.length },
+    answers: S.answers
+  };
+  const blob = new Blob([JSON.stringify(out, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `decision-timing_${(S.rater || "rater").replace(/\W+/g, "-")}.json`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+$("dlBtn").addEventListener("click", download);
+$("saveBtn").addEventListener("click", download);
+
+$("resetBtn").addEventListener("click", () => {
+  if (confirm("Erase your answers from this browser? This cannot be undone.")) {
+    localStorage.removeItem(KEY); location.reload();
+  }
+});
+
+/* ---- start -------------------------------------------------------------- */
+["rater", "spec"].forEach(id => $(id).addEventListener("input", () => {
+  $("startBtn").disabled = !($("rater").value.trim() && $("spec").value.trim());
+}));
+
+$("startBtn").addEventListener("click", () => {
+  S = { rater: $("rater").value.trim(), specialty: $("spec").value.trim(),
+        started: new Date().toISOString(), t: 0, s: 0,
+        answers: { stages: [], windows: [] } };
+  save(); boot();
+});
+
+function boot() {
+  $("whoami").textContent = S ? `${S.rater} · case ${Math.min(S.t + 1, DATA.trajectories.length)}/${DATA.trajectories.length}` : "";
+  $("saveBtn").classList.toggle("hidden", !S);
+  if (!S) return;
+  if (S.t >= DATA.trajectories.length) showDone();
+  else if (S.s >= DATA.trajectories[S.t].n_stages) showB();
+  else showA();
+}
+
+fetch("data/payload.json")
+  .then(r => r.json())
+  .then(d => {
+    DATA = d;
+    S = load();
+    if (S) boot();
+    else { $("saveBtn").classList.add("hidden"); }
+  })
+  .catch(() => {
+    $("intro").innerHTML =
+      '<h1>Could not load the cases</h1><p class="lede">Please reload the page. ' +
+      'If it happens again, tell the study contact — the case file did not download.</p>';
+  });
+</script>
+</body>
+</html>
