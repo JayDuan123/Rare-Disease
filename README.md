@@ -56,7 +56,7 @@ from the page.
 
 `preview.html` exists so the study owner can read every question and every case without
 walking the locked-forward flow. It is deliberately **not linked from `index.html`** and
-sits behind a passphrase (`odyssey-review`).
+sits behind a passphrase (`12345`).
 
 Be honest about what that gate is. The site is static, so the check runs in the browser
 and the phrase is in the page source: it stops a rater who stumbles onto the link, and it
