@@ -152,8 +152,8 @@ button{font:inherit; color:inherit}
 <div id="content" class="hidden">
   <div class="banner">
     <strong>Reviewer preview — do not send this link to a rater.</strong>
-    Raters work through <code>index.html</code>, which shows one contact at a time and locks
-    each answer before the next appears. This page shows all 21 cases and all 52 contacts
+    Raters work through <code>index.html</code>, which shows one decision point at a time and
+    locks each answer before the next appears. This page shows all 21 cases and all 52 decision points
     together, so anyone who reads it can no longer serve as a rater.
   </div>
 
@@ -169,19 +169,22 @@ button{font:inherit; color:inherit}
 
       <section class="sec">
         <h2>What the rater is asked</h2>
-        <p class="sub">The questions appear beside each contact below, rendered exactly as a
-        rater sees them — including the Pass&nbsp;B contact options, which depend on how many
-        contacts that case has. Pass&nbsp;A is asked once per contact, with only that contact
-        and its predecessors visible. Pass&nbsp;B is asked once per case, with the whole case
-        visible. <strong>Nothing you click on this page is recorded.</strong></p>
+        <p class="sub">The questions appear beside each decision point below, rendered exactly as
+        a rater sees them — including the Pass&nbsp;B options, which depend on how many points
+        that case has. Pass&nbsp;A is asked once per point, with only that point and its
+        predecessors visible. Pass&nbsp;B is asked once per case, with the whole case visible. <strong>Nothing you click on this page is recorded.</strong></p>
       </section>
 
       <section class="sec">
         <h2>The 21 cases</h2>
         <p class="sub">Case text is passed through byte for byte from the benchmark's rendered
-        contacts. Labels are opaque and ordered by digest, so <code>T01</code> is not the
+        stages. Labels are opaque and ordered by digest, so <code>T01</code> is not the
         alphabetically or chronologically first case. The de-blinding map is held in the
         analysis repository and is not published with this site.</p>
+        <p class="sub"><strong>A decision point is not a visit.</strong> It is a moment where
+        the treating team faced a decision, and encounters that posed none were left out — so
+        consecutive points can be a day apart or ten years apart. The number carries order,
+        never duration.</p>
         <div id="cases"></div>
       </section>
 
@@ -257,7 +260,7 @@ function sel(n,endVal,endText){
   const s=document.createElement("select");
   const z=document.createElement("option"); z.textContent="— choose —"; s.append(z);
   for(let i=1;i<=n;i++){ const o=document.createElement("option");
-    o.textContent=`Contact ${i}`; s.append(o); }
+    o.textContent=`Point ${i}`; s.append(o); }
   const e=document.createElement("option"); e.textContent=endText; s.append(e);
   return s;
 }
@@ -265,21 +268,21 @@ function askB(t){
   const wrap=el("div","passb");
   const lead=el("div","lead");
   lead.append(el("p",null,
-    `After all ${t.n_stages} contacts of ${t.trajectory_id} are locked, the whole case is shown together and these two windows are asked. The contact options below are this case's real ones.`));
+    `After all ${t.n_stages} decision points of ${t.trajectory_id} are locked, the whole case is shown together and these two windows are asked. The options below are this case's real ones. The points are NOT evenly spaced -- elapsed time must be read from the record itself.`));
   wrap.append(lead);
 
   const a=el("div","ask");
   let b=block("Pass B · escalation","Escalation — stepping beyond routine workup",
-    "Earliest contact at which stepping up would already be reasonable:");
+    "Earliest decision point at which stepping up would already be reasonable:");
   b.append(sel(t.n_stages,"never","Never indicated here"));
-  b.append(el("span","qh","Last contact at which stepping up is still acceptable — after this, delay costs the patient:"));
+  b.append(el("span","qh","Last decision point at which stepping up is still acceptable — after this, delay costs the patient:"));
   b.append(sel(t.n_stages,"beyond","Still acceptable to wait"));
   a.append(b);
 
   b=block("Pass B · referral","Referral to a specialist",
-    "Earliest contact at which referral would already be reasonable:");
+    "Earliest decision point at which referral would already be reasonable:");
   b.append(sel(t.n_stages,"never","Never indicated here"));
-  b.append(el("span","qh","Last contact at which referral is still acceptable:"));
+  b.append(el("span","qh","Last decision point at which referral is still acceptable:"));
   b.append(sel(t.n_stages,"beyond","Still acceptable to wait"));
   b.append(el("span","qh","If referral is indicated, to which specialty?"));
   const inp=document.createElement("input"); inp.type="text";
@@ -299,7 +302,7 @@ function render(){
   DATA.trajectories.forEach(t => {
     const a=el("a"); a.href="#"+t.trajectory_id;
     a.append(el("span",null,t.trajectory_id));
-    a.append(el("span","c",`${t.n_stages} contacts`));
+    a.append(el("span","c",`${t.n_stages} points`));
     idx.append(a);
 
     const w=t.stages.reduce((n,s)=>n+s.text.trim().split(/\s+/).length,0);
@@ -308,13 +311,13 @@ function render(){
     const card=el("section","case"); card.id=t.trajectory_id;
     const hd=el("header");
     hd.append(el("span","id",t.trajectory_id));
-    hd.append(el("span","meta",`${t.n_stages} contacts · ${w} words`));
+    hd.append(el("span","meta",`${t.n_stages} points · ${w} words`));
     card.append(hd);
     t.stages.forEach((s,i)=>{
       const c=el("div","contact");
       const left=el("div");
       const h=el("div","hd");
-      h.append(el("span","n",`Contact ${i+1} of ${t.n_stages}`));
+      h.append(el("span","n",`Decision point ${i+1} of ${t.n_stages}`));
       h.append(el("span",null,s.stage_id));
       left.append(h);
       const pre=el("pre"); pre.textContent=s.text; left.append(pre);
@@ -328,7 +331,7 @@ function render(){
 
   const st=document.getElementById("stats");
   st.replaceChildren();
-  [["Cases",DATA.n_trajectories],["Contacts",DATA.n_stages],
+  [["Cases",DATA.n_trajectories],["Decision points",DATA.n_stages],
    ["Words",words.toLocaleString()],
    ["Pass A answers",DATA.n_stages],["Pass B answers",DATA.n_trajectories]
   ].forEach(([k,v])=>{

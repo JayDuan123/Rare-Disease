@@ -196,20 +196,25 @@ select:disabled{opacity:.45; cursor:not-allowed}
   <section id="intro" class="card">
     <h1>How clinicians time escalation and referral</h1>
     <p class="lede">You will read 21 anonymised patient records, each unfolding across
-    several contacts, and say what you would do at each point. There are no right answers
+    several decision points, and say what you would do at each one. There are no right answers
     supplied and nothing is being tested — your judgement is the reference.</p>
 
     <ul class="steps">
-      <li><span class="n">1</span><span><strong>One contact at a time.</strong> You see the
-        record exactly as it stood at that moment. Decide what you would do next, then lock
-        it in. <strong>You cannot revise a locked answer</strong> — later contacts reveal
+      <li><span class="n">1</span><span><strong>One decision point at a time.</strong> You see
+        the record exactly as it stood at that moment. Decide what you would do next, then
+        lock it in. <strong>You cannot revise a locked answer</strong> — later points reveal
         information you did not have, and an answer changed in hindsight is no longer the
         judgement we need.</span></li>
       <li><span class="n">2</span><span><strong>Then the whole story.</strong> Once you have
-        answered every contact in a case, all of it is shown together and you are asked when
-        escalation and referral should have happened — as a window, not a single point:
+        answered every decision point in a case, all of it is shown together and you are asked
+        when escalation and referral should have happened — as a window, not a single point:
         the earliest reasonable moment and the last acceptable one.</span></li>
-      <li><span class="n">3</span><span><strong>Work in sittings.</strong> Progress is kept
+      <li><span class="n">3</span><span><strong>The gaps between points are not
+        uniform.</strong> One case moves on to the next point the following day; another
+        after ten years. <strong>The number tells you the order, never the elapsed time</strong>
+        — read how much time has passed from the record's own wording each time, because the
+        timing questions at the end depend on it.</span></li>
+      <li><span class="n">4</span><span><strong>Work in sittings.</strong> Progress is kept
         in this browser. Close the tab and return to the same link on the same machine to
         carry on. Use <em>Save my answers</em> at any time to download what you have so far.</span></li>
     </ul>
@@ -254,7 +259,7 @@ select:disabled{opacity:.45; cursor:not-allowed}
           <div class="opts" id="altA"></div>
         </div>
         <button class="btn" id="lockBtn" type="submit" disabled>Lock and continue</button>
-        <p class="note" id="lockNote">Locking is final for this contact.</p>
+        <p class="note" id="lockNote">Locking is final for this decision point.</p>
       </form>
     </div>
   </section>
@@ -267,24 +272,26 @@ select:disabled{opacity:.45; cursor:not-allowed}
 
       <form class="panel" id="formB" autocomplete="off">
         <p class="note">The whole case is now shown on the left. These questions are asked
-          with hindsight, which is exactly what they need.</p>
+          with hindsight, which is exactly what they need. Remember that the points are not
+          evenly spaced — check the record for how much time actually passed between
+          them.</p>
 
         <div class="q">
           <span class="qt">Escalation — stepping beyond routine workup</span>
-          <span class="qh">Earliest contact at which stepping up would already be
+          <span class="qh">Earliest decision point at which stepping up would already be
             <em>reasonable</em>:</span>
           <select id="escEarly"></select>
-          <span class="qh">Last contact at which stepping up is still <em>acceptable</em> —
+          <span class="qh">Last decision point at which stepping up is still <em>acceptable</em> —
             after this, delay costs the patient:</span>
           <select id="escLate"></select>
         </div>
 
         <div class="q">
           <span class="qt">Referral to a specialist</span>
-          <span class="qh">Earliest contact at which referral would already be
+          <span class="qh">Earliest decision point at which referral would already be
             <em>reasonable</em>:</span>
           <select id="refEarly"></select>
-          <span class="qh">Last contact at which referral is still <em>acceptable</em>:</span>
+          <span class="qh">Last decision point at which referral is still <em>acceptable</em>:</span>
           <select id="refLate"></select>
           <span class="qh">If referral is indicated, to which specialty? Separate several with
             commas.</span>
@@ -355,7 +362,7 @@ function rail(node, tIdx, sIdx, phase) {
   node.append(el("span", "lab", `CASE ${tIdx + 1} OF ${DATA.trajectories.length}`));
   const t = DATA.trajectories[tIdx];
   node.append(el("span", "railgap"));
-  node.append(el("span", "lab", "CONTACT"));
+  node.append(el("span", "lab", "DECISION POINT"));
   t.stages.forEach((_, i) => {
     const p = el("span", "pip");
     if (phase === "B" || i < sIdx) p.classList.add("done");
@@ -372,7 +379,7 @@ function recordCard(stage, n, total, dim) {
   const wrap = el("div", dim ? "prior" : null);
   const card = el("div", "record");
   const h = el("h2");
-  h.append(el("span", null, `Contact ${n} of ${total}`));
+  h.append(el("span", null, `Decision point ${n} of ${total}`));
   h.append(el("span", null, stage.stage_id));
   card.append(h);
   const pre = el("pre"); pre.textContent = stage.text;
@@ -429,7 +436,7 @@ function showA() {
   checks($("altA"), "alt", ACTIONS);
   $("lockBtn").disabled = true;
   $("lockNote").textContent = S.s + 1 < t.n_stages
-    ? "Locking is final for this contact. The next contact opens after you lock."
+    ? "Locking is final for this point. The next one opens after you lock."
     : "Locking is final. The whole case opens next for the timing questions.";
   window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -448,7 +455,7 @@ $("formA").addEventListener("submit", ev => {
   S.answers.stages.push({
     stage_id: stage.stage_id,
     trajectory_id: t.trajectory_id,
-    contact: S.s + 1,
+    point: S.s + 1,
     action: document.querySelector('input[name="act"]:checked').value,
     confidence: document.querySelector('input[name="conf"]:checked').value,
     also_reasonable: alt,
@@ -466,7 +473,7 @@ function stageOptions(sel, n, endLabel) {
   none.value = ""; none.textContent = "— choose —"; sel.append(none);
   for (let i = 1; i <= n; i++) {
     const o = document.createElement("option");
-    o.value = String(i); o.textContent = `Contact ${i}`; sel.append(o);
+    o.value = String(i); o.textContent = `Point ${i}`; sel.append(o);
   }
   const o = document.createElement("option");
   o.value = endLabel.value; o.textContent = endLabel.text; sel.append(o);
@@ -507,11 +514,11 @@ function syncB() {
 
 function windowOf(e, l) {
   const a = $(e).value, b = $(l).value;
-  if (!a) return { error: "choose an earliest contact" };
+  if (!a) return { error: "choose an earliest point" };
   if (a === "never") return { earliest: "never", latest: "never" };
-  if (!b) return { error: "choose a latest contact" };
+  if (!b) return { error: "choose a latest point" };
   if (b !== "beyond" && Number(b) < Number(a))
-    return { error: "the latest contact cannot come before the earliest" };
+    return { error: "the latest point cannot come before the earliest" };
   return { earliest: Number(a), latest: b === "beyond" ? "beyond" : Number(b) };
 }
 
@@ -526,7 +533,7 @@ $("formB").addEventListener("submit", ev => {
 
   S.answers.windows.push({
     trajectory_id: t.trajectory_id,
-    n_contacts: t.n_stages,
+    n_points: t.n_stages,
     escalation: esc,
     referral: ref,
     referral_destination: $("refDest").value.trim(),
@@ -547,7 +554,7 @@ function showDone() {
   const head = el("tr");
   ["", "count"].forEach(h => head.append(el("th", null, h)));
   tb.append(head);
-  [["contacts judged", S.answers.stages.length],
+  [["decision points judged", S.answers.stages.length],
    ["cases with a timing window", S.answers.windows.length]].forEach(([k, v]) => {
     const tr = el("tr"); tr.append(el("td", null, k)); tr.append(el("td", "num", String(v)));
     tb.append(tr);
@@ -561,7 +568,7 @@ function download() {
     spec: "notes/CLINICIAN_GOLD.md",
     rater: S.rater, specialty: S.specialty,
     started: S.started, exported: new Date().toISOString(),
-    progress: { case_index: S.t, contact_index: S.s,
+    progress: { case_index: S.t, point_index: S.s,
                 total_cases: DATA.trajectories.length },
     answers: S.answers
   };
