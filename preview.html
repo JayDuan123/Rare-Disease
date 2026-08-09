@@ -173,6 +173,11 @@ button{font:inherit; color:inherit}
         a rater sees them — including the Pass&nbsp;B options, which depend on how many points
         that case has. Pass&nbsp;A is asked once per point, with only that point and its
         predecessors visible. Pass&nbsp;B is asked once per case, with the whole case visible. <strong>Nothing you click on this page is recorded.</strong></p>
+        <p class="sub"><strong>The four actions are shown as bare labels on purpose.</strong>
+        The benchmark never defined them, and the systems under comparison were shown the
+        enum and nothing else. Glossing them for raters would produce a better-specified
+        question than the one already answered, and any rater/system mismatch would then be
+        untraceable between clinical judgement and vocabulary.</p>
       </section>
 
       <section class="sec">
@@ -213,10 +218,9 @@ document.getElementById("pw").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("go").click();
 });
 
-const ACTIONS=[["observe","watch, no new investigation now"],
-  ["routine_workup","standard next-line tests"],
-  ["escalate","urgent or expanded investigation"],
-  ["refer","hand to a specialist service"]];
+/* Bare labels -- see the note in index.html. The benchmark never defined these
+   four terms and the systems were shown the enum alone. */
+const ACTIONS=[["observe"],["routine_workup"],["escalate"],["refer"]];
 const CONF=["low","moderate","high"];
 
 function opt(kind,name,val,gloss){
@@ -239,7 +243,7 @@ function askA(sid){
   const a=el("div","ask");
   let b=block("Pass A","Given only what is recorded here, what would you do next for this patient?");
   const o1=el("div","opts");
-  ACTIONS.forEach(([v,g])=>o1.append(opt("radio",sid+"-act",v,g)));
+  ACTIONS.forEach(([v])=>o1.append(opt("radio",sid+"-act",v,null)));
   b.append(o1); a.append(b);
 
   b=block("Pass A","How confident are you in that choice?");

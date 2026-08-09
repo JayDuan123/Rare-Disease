@@ -331,12 +331,15 @@ select:disabled{opacity:.45; cursor:not-allowed}
    Everything else is bookkeeping.
    =========================================================================== */
 
-const ACTIONS = [
-  ["observe",        "watch, no new investigation now"],
-  ["routine_workup", "standard next-line tests"],
-  ["escalate",       "urgent or expanded investigation"],
-  ["refer",          "hand to a specialist service"]
-];
+/* Bare labels, no glosses. The systems being benchmarked were shown exactly
+   "observe | routine_workup | escalate | refer" and nothing more; the schema
+   never defined the four terms. Defining them here would have handed raters a
+   better-specified question than the one already answered, and a rater/system
+   mismatch would then be untraceable between a difference of clinical judgement
+   and a difference of vocabulary. If the terms prove too loose for three
+   clinicians to apply consistently, that is a finding about the benchmark's own
+   answer schema -- one that applies to every model result already frozen. */
+const ACTIONS = [["observe"], ["routine_workup"], ["escalate"], ["refer"]];
 const CONF = ["low", "moderate", "high"];
 const KEY = "cdt.pilot.v1";
 
@@ -390,26 +393,24 @@ function recordCard(stage, n, total, dim) {
 
 function radios(host, name, items, onchange, checked) {
   host.replaceChildren();
-  items.forEach(([val, gloss]) => {
+  items.forEach(([val]) => {
     const lab = el("label", "opt");
     const inp = document.createElement("input");
     inp.type = "radio"; inp.name = name; inp.value = val;
     if (checked === val) inp.checked = true;
     inp.addEventListener("change", onchange);
     lab.append(inp, el("span", "name", val));
-    if (gloss) lab.append(el("span", "gloss", gloss));
     host.append(lab);
   });
 }
 
 function checks(host, name, items) {
   host.replaceChildren();
-  items.forEach(([val, gloss]) => {
+  items.forEach(([val]) => {
     const lab = el("label", "opt");
     const inp = document.createElement("input");
     inp.type = "checkbox"; inp.name = name; inp.value = val;
     lab.append(inp, el("span", "name", val));
-    if (gloss) lab.append(el("span", "gloss", gloss));
     host.append(lab);
   });
 }
@@ -432,7 +433,7 @@ function showA() {
   }
 
   radios($("actA"), "act", ACTIONS, onFormA, null);
-  radios($("confA"), "conf", CONF.map(c => [c, null]), onFormA, null);
+  radios($("confA"), "conf", CONF.map(c => [c]), onFormA, null);
   checks($("altA"), "alt", ACTIONS);
   $("lockBtn").disabled = true;
   $("lockNote").textContent = S.s + 1 < t.n_stages
